@@ -1,0 +1,1 @@
+This folder holds C# scripts which should be placed in the Assets/Scripts folder of the Unity project. 
