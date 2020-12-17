@@ -35,7 +35,7 @@ class PropagateSegToOtherPhases(ScriptedLoadableModule):
         self.parent.helpText += self.getDefaultModuleDocumentationLink()
         self.parent.acknowledgementText = """
     Originally developed by Mike Bindschadler, Seattle Childrens Hospital. It 
-    was funded by Radiology
+    was funded by the Department of Radiology
     """  # replace with organization, grant and thanks.
 
 
@@ -110,14 +110,6 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         initAreaCollapsibleButton.text = 'Initialize'
         self.layout.addWidget(initAreaCollapsibleButton)
         initAreaFormLayout = qt.QFormLayout(initAreaCollapsibleButton)
-
-        #
-        # Test printing something to the interactor window
-        #
-        self.testPrintButton = qt.QPushButton("Test print to Interactor")
-        self.testPrintButton.toolTip = "Run the algorithm."
-        self.testPrintButton.enabled = True
-        initAreaFormLayout.addRow('Test Print Button', self.testPrintButton)
 
         #
         # Sequence Browser Selector
@@ -247,28 +239,7 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         runGrowFromSeedsButton.enabled = True
         self.runGrowFromSeedsButton = runGrowFromSeedsButton
         propStepsAreaFormLayout.addRow(self.runGrowFromSeedsButton)
-        '''
-        # Initialize GrowFromSeeds
-        initGrowFromSeedsButton = qt.QPushButton('Initialize GrowFromSeeds')
-        initGrowFromSeedsButton.toolTip  = 'Press to run the initialization of GrowFromSeeds on the current frame using the eroded segmentation'
-        initGrowFromSeedsButton.enabled = True
-        self.initGrowFromSeedsButton = initGrowFromSeedsButton
-        propStepsAreaFormLayout.addRow(self.initGrowFromSeedsButton)
-        
-        # Update GrowFromSeeds
-        updateGrowFromSeedsButton = qt.QPushButton('Update GrowFromSeeds')
-        updateGrowFromSeedsButton.toolTip  = 'Press to update the initialization of GrowFromSeeds after making any modifications of the current segmenatation'
-        updateGrowFromSeedsButton.enabled = False # only enable after initialization 
-        self.updateGrowFromSeedsButton = updateGrowFromSeedsButton
-        propStepsAreaFormLayout.addRow(self.updateGrowFromSeedsButton)
-        
-        # Apply GrowFromSeeds
-        applyGrowFromSeedsButton = qt.QPushButton('Finalize GrowFromSeeds')
-        applyGrowFromSeedsButton.toolTip  = 'Press to run the initialization of GrowFromSeeds on the current frame using the eroded segmentation'
-        applyGrowFromSeedsButton.enabled = True
-        self.applyGrowFromSeedsButton = applyGrowFromSeedsButton
-        propStepsAreaFormLayout.addRow(self.applyGrowFromSeedsButton)
-        '''
+
         # Rename New Segmentation (and make it the new current one)
         renameSegmentationButton = qt.QPushButton('Rename Eroded and Regrown Segmentation')
         renameSegmentationButton.enabled = True
@@ -348,7 +319,6 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         #########
         # connections
         self.sequenceBrowserSelector.connect("currentNodeChanged(vtkMRMLNode*)", self.onSequenceBrowserSelectorChange)
-        self.testPrintButton.connect('clicked(bool)', self.onTestPrintButtonClick)
         self.GenerateEmptySegmentsButton.connect('clicked(bool)', self.onGenerateEmptySegmentsButtonClick)
         self.closeHolesButton.connect('clicked(bool)', self.onCloseHolesButtonClick)
         self.erodeButton.connect('clicked(bool)', self.onErodeButtonClick)
@@ -358,10 +328,6 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         self.updateBelowThreshButton.connect('clicked(bool)', self.onUpdateBelowThreshButtonClick)
 
         self.runGrowFromSeedsButton.connect('clicked(bool)', self.onRunGrowFromSeedsButtonClick)
-        '''self.initGrowFromSeedsButton.connect('clicked(bool)',self.onInitGrowFromSeedsButtonClick)
-        self.updateGrowFromSeedsButton.connect('clicked(bool)',self.onUpdateGrowFromSeedsButtonClick)
-        self.applyGrowFromSeedsButton.connect('clicked(bool)',self.onApplyGrowFromSeedsButtonClick)
-        '''
         self.renameSegmentationButton.connect('clicked(bool)', self.onRenameSegmentationButtonClick)
 
         self.propagateAllFramesButton.connect('clicked(bool)', self.onPropagateAllFramesButtonClick)
@@ -419,10 +385,6 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
     def onSegmentationSelectorChange(self):
         self.erodeButton.enabled = self.baseSegmentationSelector.currentNode() and True  # and self.outputSelector.currentNode()
 
-    def onTestPrintButtonClick(self):
-        logic = PropagateSegToOtherPhasesLogic()
-        logic.runTestPrint('You pressed the test print button!')
-
     def onGenerateEmptySegmentsButtonClick(self):
         logic = PropagateSegToOtherPhasesLogic()
         segmentNamesAndColors = self.defaultSegmentNamesAndColors
@@ -470,19 +432,6 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         proxyVolumeNode = seqBrowserNode.GetProxyNode(
             masterSequenceVolumeNode)  # the sequence needs to be supplied because I suppose there might be multiple sequences associated with this browser and each will have a separate proxy node
         logic.runGrowFromSeeds(segmentationNode, proxyVolumeNode)
-        '''
-    def onInitGrowFromSeedsButtonClick(self):
-        logic = PropagateSegToOtherPhasesLogic()
-        segmentationNode = self.baseSegmentationSelector.currentNode() # should be eroded and have cleared and renewed BelowThresh segment at this point
-        seqBrowserNode = self.sequenceBrowserSelector.currentNode()
-        masterSequenceVolumeNode = seqBrowserNode.GetMasterSequenceNode()
-        proxyVolumeNode = seqBrowserNode.GetProxyNode(masterSequenceVolumeNode) # the sequence needs to be supplied because I suppose there might be multiple sequences associated with this browser and each will have a separate proxy node
-        logic.initGrowFromSeeds(segmentationNode,proxyVolumeNode)
-    def onUpdateGrowFromSeedsButtonClick(self):
-        pass
-    def onApplyGrowFromSeedsButtonClick(self):
-        pass
-        '''
 
     def onRenameSegmentationButtonClick(self):
         logic = PropagateSegToOtherPhasesLogic()
@@ -570,15 +519,12 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         self.onCloseHolesButtonClick()
         self.doHollowSingleFrame()  # differs from hollow button click because uses seq browser and recently
         # generated segmentation rather than independent selectors
-        # TODO: Add hollowing here
-        # What are the issues?  Need to specify segmentation, volume, shell and LV thicknesses,
-        # oldSegmentationNode, bloodPoolNameAndColor, volumeNode, thickness=5.0, LVthickness=15.0,
-        #                        segmentIDsToInclude=('LA', 'LV', 'Aorta', 'RA', 'RV', 'PA'))
-        #
+     
         printNow('-----------------------------------')
         printNow('COMPLETED NEXT FRAME IN ONE CLICK!')
         printNow('Finished in ' + str(now() - startTime))
         printNow('-----------------------------------')
+ 
     def doHollowSingleFrame(self):
         logic = PropagateSegToOtherPhasesLogic()
         volumeNode = self.getProxyVolumeNode()
@@ -596,6 +542,7 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         masterVolumeNode = sequenceBrowserNode.GetMasterSequenceNode()
         proxyVolumeNode = sequenceBrowserNode.GetProxyNode(masterVolumeNode)
         return proxyVolumeNode
+
     def onCloseHolesButtonClick(self):
         # launch close holes for all regions except "BelowThresh", with editable region only BelowThresh
         logic = PropagateSegToOtherPhasesLogic()
@@ -607,9 +554,6 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
 
     def onErodeButtonClick(self):
         logic = PropagateSegToOtherPhasesLogic()
-        # enableScreenshotsFlag = self.enableScreenshotsFlagCheckBox.checked
-        # imageThreshold = self.imageThresholdSliderWidget.value
-        # logic.run(self.inputSelector.currentNode(), self.outputSelector.currentNode(), imageThreshold, enableScreenshotsFlag)
         seqBrowserNode = self.sequenceBrowserSelector.currentNode()
         masterSequenceVolumeNode = seqBrowserNode.GetMasterSequenceNode()
         proxyVolumeNode = seqBrowserNode.GetProxyNode(masterSequenceVolumeNode)
@@ -626,23 +570,21 @@ class PropagateSegToOtherPhasesWidget(ScriptedLoadableModuleWidget):
         # which are related to the selected base segmentation.  Currently, it is
         # just a list of ALL segmentations loaded.
 
-        logic.exportAllToOBJ(outputPath, segNodeList,decimationFraction=0.4) # added decimation fraction to reduce model output size
+        logic.exportAllToOBJ(outputPath, segNodeList, decimationFraction=0.4) # added decimation fraction to reduce model output size
 
     def onLaunchHollowButtonClick(self):
+        # Called when "Launch Hollowing" button is clicked. Operates based on a chosen single
+        # frame segmentation rather than running for all segmentations in a sequence.  Thus 
+        # this area was used more for testing than in the streamlined workflow. Note that
+        # Propagate Segmentation 1 Frame and Propagate Segmentation to All Frames automatically 
+        # generate the hollowed segmentations using doHollowSingleFrame() (which is basically the 
+        # same as this function).
         logic = PropagateSegToOtherPhasesLogic()
-        ### Removed next few lines for testing, just using single volume not volume sequence
-        # seqBrowserNode = self.sequenceBrowserSelector.currentNode()
-        # masterSequenceVolumeNode = seqBrowserNode.GetMasterSequenceNode()
-        # proxyVolumeNode = seqBrowserNode.GetProxyNode(masterSequenceVolumeNode)
-        ### Added next line
         volumeNode = self.hollowVolumeSelector.currentNode()
 
         oldSegmentationNode = self.hollowSegSelector.currentNode()
         thickness = self.getShellThickness()
         LVthickness = self.getShellLVThickness()
-        # Old version using proxy node
-        # logic.hollowToNewSeg(oldSegmentationNode,self.defaultBloodPoolNameAndColor,proxyVolumeNode,thickness=thickness,LVthickness=LVthickness,segmentIDsToInclude=('LA','LV','Aorta','RA','RV','PA'))
-        # New version using volume node
         newHollowSegNode = logic.hollowToNewSeg(oldSegmentationNode, self.defaultBloodPoolNameAndColor, volumeNode, thickness=thickness,
                              LVthickness=LVthickness, segmentIDsToInclude=('LA', 'LV', 'Aorta', 'RA', 'RV', 'PA'))
         logic.addSheathSegmentToHollowSegNode(newHollowSegNode,volumeNode)
@@ -723,36 +665,6 @@ class PropagateSegToOtherPhasesLogic(ScriptedLoadableModuleLogic):
         totTime = now() - startTime
         printNow('Total elapsed time: ' + str(totTime))
         return
-
-    '''        
-    def initGrowFromSeeds(self,segmentationNode,proxyVolumeNode):
-        # Initialize GrowFromSeeds effect
-        # NOT USED CURRENTLY
-        
-        # Create segment editor to get access to effects
-        segmentEditorWidget = slicer.qMRMLSegmentEditorWidget()
-        # To show segment editor widget (useful for debugging): segmentEditorWidget.show()
-        segmentEditorWidget.setMRMLScene(slicer.mrmlScene)
-        segmentEditorNode = slicer.vtkMRMLSegmentEditorNode()
-        slicer.mrmlScene.AddNode(segmentEditorNode)
-        segmentEditorWidget.setMRMLSegmentEditorNode(segmentEditorNode)
-        segmentEditorWidget.setSegmentationNode(segmentationNode)
-        segmentEditorWidget.setMasterVolumeNode(proxyVolumeNode)
-        
-        # Set up the segmentation effect
-        segmentEditorWidget.setActiveEffectByName("Grow from seeds")
-        effect = segmentEditorWidget.activeEffect()
-        # Parameters for GrowFromSeeds should include the Auto-updated checkbox, 
-        # the display inputs/results slider. 
-        # TODO check whether it is required that all segments are visible?
-        #effect.setParameter()
-        
-        # Run Initialize!
-        effect.self().onPreview() 
-        # Finalize (because I haven't figured out how to make this multistep yet)
-        #effect.self().onApply()
-        return #effect, segmentEditorNode # because we need to access it for updating and finalizing.
-    '''
 
     def renameSegmentation(self, segmentationNode, currentFrameNum):
         # Rename segmentation for current frame, for example, change SegForFrame_0_eroded
@@ -1009,8 +921,6 @@ class PropagateSegToOtherPhasesLogic(ScriptedLoadableModuleLogic):
         # Add a transparent sheath segment to the supplied hollow segmentation node (for glassy heart views)
         # The sheath segment is the logical union of all the other segments (i.e. the bloodpool plus all of
         # its hollowed shells)
-
-        ####### ONLY PARTIALLY WRITTEN!! #########
         
         sheathSegment = vtkSegmentationCore.vtkSegment()
         sheathSegment.SetName('Sheath')
@@ -1254,95 +1164,7 @@ class PropagateSegToOtherPhasesLogic(ScriptedLoadableModuleLogic):
         printNow('Total hollowToNewSeg time = ' + str(now() - startTime))
         return newSegmentationNode  # so it can be set in the selector if desired
 
-    '''
-    Helper function to extract frames from a multivolume one by
-    one and add each frame as a separate scalar volume to the scene.
-    Input: multivolume node and a reference scalar volume node that should
-    have the same geometry as the multivolume.
-    '''
-
-    def explodeMultivolume(mvName, refName):
-        mv = slicer.util.getNode(mvName)
-        ref = slicer.util.getNode(refName)  # it would be better if this could be extracted from the multivolume itelf
-        mvi = mv.GetImageData()
-
-        for i in range(mv.GetNumberOfFrames()):
-            e0 = vtk.vtkImageExtractComponents()
-            e0.SetInputData(mvi)
-            e0.SetComponents(i)
-            e0.Update()
-
-        # clone reference
-        frame = slicer.modules.volumes.logic().CloneVolume(slicer.mrmlScene, ref, 'frame' + str(i))
-        # TODO it would great if somehow the cardiac phase information was not lost here
-        frame.SetAndObserveImageData(e0.GetOutput())  # copies the extracted image data into the cloned reference volume
-
-    ######## FUNCTIONS BELOW HERE AUTO-GENERATED AND NOT USED (just for reference)
-    def hasImageData(self, volumeNode):
-        """This is an example logic method that
-        returns true if the passed in volume
-        node has valid image data
-        """
-        if not volumeNode:
-            logging.debug('hasImageData failed: no volume node')
-            return False
-        if volumeNode.GetImageData() is None:
-            logging.debug('hasImageData failed: no image data in volume node')
-            return False
-        return True
-
-    def isValidInputOutputData(self, inputVolumeNode, outputVolumeNode):
-        """Validates if the output is not the same as input
-        """
-        if not inputVolumeNode:
-            logging.debug('isValidInputOutputData failed: no input volume node defined')
-            return False
-        if not outputVolumeNode:
-            logging.debug('isValidInputOutputData failed: no output volume node defined')
-            return False
-        if inputVolumeNode.GetID() == outputVolumeNode.GetID():
-            logging.debug(
-                'isValidInputOutputData failed: input and output volume is the same. Create a new volume for output to avoid this error.')
-            return False
-        return True
-
-    def takeScreenshot(self, name, description, type=-1):
-        # show the message even if not taking a screen shot
-        slicer.util.delayDisplay(
-            'Take screenshot: ' + description + '.\nResult is available in the Annotations module.', 3000)
-
-        lm = slicer.app.layoutManager()
-        # switch on the type to get the requested window
-        widget = 0
-        if type == slicer.qMRMLScreenShotDialog.FullLayout:
-            # full layout
-            widget = lm.viewport()
-        elif type == slicer.qMRMLScreenShotDialog.ThreeD:
-            # just the 3D window
-            widget = lm.threeDWidget(0).threeDView()
-        elif type == slicer.qMRMLScreenShotDialog.Red:
-            # red slice window
-            widget = lm.sliceWidget("Red")
-        elif type == slicer.qMRMLScreenShotDialog.Yellow:
-            # yellow slice window
-            widget = lm.sliceWidget("Yellow")
-        elif type == slicer.qMRMLScreenShotDialog.Green:
-            # green slice window
-            widget = lm.sliceWidget("Green")
-        else:
-            # default to using the full window
-            widget = slicer.util.mainWindow()
-            # reset the type so that the node is set correctly
-            type = slicer.qMRMLScreenShotDialog.FullLayout
-
-        # grab and convert to vtk image data
-        qimage = ctk.ctkWidgetsUtils.grabWidget(widget)
-        imageData = vtk.vtkImageData()
-        slicer.qMRMLUtils().qImageToVtkImageData(qimage, imageData)
-
-        annotationLogic = slicer.modules.annotations.logic()
-        annotationLogic.CreateSnapShot(name, description, type, 1, imageData)
-
+    
 
 class PropagateSegToOtherPhasesTest(ScriptedLoadableModuleTest):
     """
@@ -1375,34 +1197,14 @@ class PropagateSegToOtherPhasesTest(ScriptedLoadableModuleTest):
         """
 
         self.delayDisplay("Starting the test")
-        #
-        # first, get some data
-        #
-        import urllib
-        downloads = (
-            ('http://slicer.kitware.com/midas3/download?items=5767', 'FA.nrrd', slicer.util.loadVolume),
-        )
-
-        for url, name, loader in downloads:
-            filePath = slicer.app.temporaryPath + '/' + name
-            if not os.path.exists(filePath) or os.stat(filePath).st_size == 0:
-                logging.info('Requesting download %s from %s...\n' % (name, url))
-                urllib.urlretrieve(url, filePath)
-            if loader:
-                logging.info('Loading %s...' % (name,))
-                loader(filePath)
-        self.delayDisplay('Finished with download and loading')
-
-        volumeNode = slicer.util.getNode(pattern="FA")
-        logic = PropagateSegToOtherPhasesLogic()
-        self.assertIsNotNone(logic.hasImageData(volumeNode))
+        # Conduct test here... not implemented
         self.delayDisplay('Test passed!')
-
+       
 
 def printNow(msg):
     # A wrapper for print() which flushes the buffer
     logging.info(msg)  # print(msg)
-    # sys.stdout.flush()
+    # sys.stdout.flush() # this approach didn't work, it still waits until after completion to print
 
 
 def now():
