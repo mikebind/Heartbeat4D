@@ -1,1 +1,1 @@
-This folder holds C# scripts which should be placed in the Assets/Scripts folder of the Unity project. 
+This folder holds C# scripts which should be placed in the Assets/Scripts folder of the Unity project. These are already included in the template project available from the repository author, but since that file is too large to host on github, this folder has the individual scripts which are needed to allow animation and interaction with loaded surface files. 
